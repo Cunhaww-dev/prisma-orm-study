@@ -4,5 +4,6 @@ Dockerfile
 .git
 .dockerignore
 .gitignore
+docker-compose.yaml
 .codex
 .CLAUDE.md
