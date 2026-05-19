@@ -1,9 +1,10 @@
-# Docker — Guia de Estudos
+# Docker + Prisma ORM — Guia de Estudos
 
-Repositório de estudos de Docker usando uma API Node.js como projeto base. Cobre do zero até Docker Compose com banco de dados, voltado para quem está começando.
+Repositório de estudos de Docker e Prisma ORM usando uma API Node.js como projeto base. Cobre desde os fundamentos do Docker até o uso do Prisma com PostgreSQL rodando em container.
 
 ## O que você vai aprender
 
+**Docker:**
 - O que é Docker e como ele funciona por dentro
 - Diferença entre virtualização e containers
 - Criar e rodar containers a partir de um Dockerfile
@@ -11,10 +12,71 @@ Repositório de estudos de Docker usando uma API Node.js como projeto base. Cobr
 - Usar volumes para persistir dados
 - Orquestrar múltiplos containers com Docker Compose
 
+**Prisma ORM:**
+- Configurar o Prisma em um projeto Node.js/TypeScript
+- Definir modelos no `schema.prisma`
+- Criar e executar migrations
+- Usar o Prisma Client para queries no banco
+- Inspecionar o banco com o Prisma Studio
+
 ## Pré-requisitos
 
 - [Docker Desktop](https://docs.docker.com/compose/) instalado (Windows: selecione WSL 2 na instalação)
 - Node.js 24+ (apenas para rodar o projeto fora do Docker)
+
+---
+
+## Rodando o projeto
+
+**1. Configure o `.env`** a partir do exemplo:
+```bash
+cp .env.example .env
+```
+
+**2. Suba o banco de dados:**
+```bash
+docker compose up postgres -d
+```
+
+**3. Execute as migrations:**
+```bash
+npx prisma migrate dev
+```
+
+**4. (Opcional) Abra o Prisma Studio:**
+```bash
+npx prisma studio
+```
+
+**5. Rode a API:**
+```bash
+npm run dev
+```
+
+---
+
+## Comandos Docker essenciais para este projeto
+
+```bash
+# Subir só o Postgres em background
+docker compose up postgres -d
+
+# Ver se o container está rodando
+docker ps
+
+# Ver logs do banco
+docker logs postgres
+docker logs -f postgres          # acompanhar em tempo real
+
+# Parar o banco
+docker compose down
+
+# Parar e remover os dados do volume (banco zerado)
+docker compose down --volumes
+
+# Acessar o shell do container do banco
+docker exec -it postgres /bin/bash
+```
 
 ---
 
@@ -565,8 +627,80 @@ docker compose build                    # só faz o build
 
 ---
 
+## 6. Prisma ORM
+
+### O que é
+
+Prisma é um ORM (Object-Relational Mapper) para Node.js e TypeScript. Em vez de escrever SQL diretamente, você define seus modelos em um arquivo de schema e o Prisma gera um client com tipos e queries prontas.
+
+### Instalação
+
+```bash
+npm install prisma --save-dev
+npm install @prisma/client
+npx prisma init
+```
+
+O `prisma init` cria:
+- `prisma/schema.prisma` — onde você define os modelos
+- `.env` com a variável `DATABASE_URL`
+
+### Configurando a conexão
+
+No `.env`, aponte para o Postgres rodando no Docker:
+
+```env
+DATABASE_URL="postgresql://postgres:postgres@localhost:5432/api"
+```
+
+### Comandos essenciais
+
+```bash
+# Criar uma migration a partir das mudanças no schema
+npx prisma migrate dev --name nome-da-migration
+
+# Aplicar migrations pendentes (sem criar nova)
+npx prisma migrate deploy
+
+# Sincronizar o schema sem criar migration (útil em desenvolvimento rápido)
+npx prisma db push
+
+# Abrir o Prisma Studio (interface visual do banco)
+npx prisma studio
+
+# Gerar/atualizar o Prisma Client após mudanças no schema
+npx prisma generate
+
+# Ver o status das migrations
+npx prisma migrate status
+
+# Resetar o banco (apaga tudo e reaaplica as migrations)
+npx prisma migrate reset
+```
+
+### Exemplo de schema
+
+```prisma
+model User {
+  id        Int      @id @default(autoincrement())
+  email     String   @unique
+  name      String?
+  createdAt DateTime @default(now())
+}
+```
+
+### Fluxo de trabalho
+
+```
+Edita schema.prisma → npx prisma migrate dev → Prisma Client atualizado → usa no código
+```
+
+---
+
 ## Referências
 
 - [Documentação oficial do Docker](https://docs.docker.com/)
 - [Docker Hub](https://hub.docker.com/)
 - [Bitnami PostgreSQL](https://hub.docker.com/r/bitnami/postgresql)
+- [Prisma Docs](https://www.prisma.io/docs)
+- [Prisma Schema Reference](https://www.prisma.io/docs/reference/api-reference/prisma-schema-reference)
