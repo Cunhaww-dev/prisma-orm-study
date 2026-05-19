@@ -1,11 +1,14 @@
-import http from 'node:http';
+import express, { NextFunction, Request, Response } from 'express'
+import { router } from './routes/index'
 
-const server = http.createServer(async (request, response) => {
-  if (request.method === 'GET' && request.url === '/') {
-    return response.end('Hello World!');
-  }
+const app = express()
 
-  return response.writeHead(404).end('Not found!');
-});
+app.use(express.json())
+app.use(router)
 
-server.listen(3333, () => console.log('Server is running on port 3333'));
+app.use((error: Error, _req: Request, res: Response, _next: NextFunction) => {
+  console.error(error)
+  res.status(500).json({ message: 'Internal server error' })
+})
+
+app.listen(3333, () => console.log('Server is running on port 3333'))
