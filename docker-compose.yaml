@@ -1,0 +1,30 @@
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: nodejs-api
+    container_name: api
+    ports:
+      - '3333:3333'
+    depends_on:
+      - postgres
+
+  postgres:
+    image: 'bitnami/postgresql:latest'
+    container_name: postgres
+    ports:
+      - '5432:5432'
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=api
+    volumes:
+      - database_data:/bitnami/postgresql
+
+volumes:
+  database_data:
+
+# Temos todas as configurações necessárias para rodar a aplicação, agora podemos usar o comando "docker-compose up" para iniciar os containers. O Docker Compose irá ler este arquivo, construir as imagens se necessário, criar os containers e iniciar os serviços na ordem correta.
+
+# Não usamos volume para o container da API pois não queremos guardar dados lá, usamos volume apenas para o container do banco PostgreSQL para garantir que os dados do banco sejam persistidos mesmo que o container seja parado ou removido.
