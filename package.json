@@ -4,7 +4,7 @@
   "description": "API de exemplo para rodar no docker",
   "main": "index.js",
   "scripts": {
-    "dev": "tsx watch src/server.ts",
+    "dev": "tsx watch --env-file=.env src/server.ts",
     "start": "node dist/server.js",
     "build": "tsc"
   },
