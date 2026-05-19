@@ -12,8 +12,23 @@ npm start        # Run compiled output (dist/server.js)
 
 Docker:
 ```bash
+docker compose up postgres -d   # start only postgres (recommended)
+docker compose up -d            # start full stack (api + postgres)
+docker compose down             # stop containers
+docker compose down --volumes   # stop and wipe database
 docker build -t api:latest .
 docker run -p 3333:3333 api:latest
+```
+
+Prisma:
+```bash
+npx prisma init                          # initialize prisma in the project
+npx prisma migrate dev --name <name>     # create and apply a migration
+npx prisma migrate deploy                # apply pending migrations
+npx prisma db push                       # sync schema without migration
+npx prisma studio                        # open visual database browser
+npx prisma generate                      # regenerate prisma client
+npx prisma migrate reset                 # wipe and reapply all migrations
 ```
 
 No test or lint scripts are configured.
@@ -26,9 +41,13 @@ Build output goes to `dist/` (TypeScript target: ES2024, module: nodenext). Path
 
 The Dockerfile uses `node:24-alpine3.20`, copies the full source, installs deps, builds, and runs `npm start`. Port 3333 is exposed.
 
+PostgreSQL runs via Docker Compose (`bitnami/postgresql:latest`) on port 5432. Credentials and database name are loaded from `.env` (see `.env.example`).
+
+Prisma schema lives at `prisma/schema.prisma`. The `DATABASE_URL` in `.env` must point to the running Postgres container before running any Prisma commands.
+
 ## Purpose
 
-This repo doubles as a Docker study portfolio. The `README.md` is the primary learning guide — it covers every concept and command from the study notes (intro through Docker Compose with PostgreSQL). When editing docs, keep the README as the single source of truth for anyone cloning the repo.
+This repo is a study project covering Docker and Prisma ORM together. The `README.md` is the primary learning guide — it covers Docker concepts (containers, volumes, Compose) and Prisma usage (schema, migrations, client). When editing docs, keep the README as the single source of truth for anyone cloning the repo.
 
 ## Study Notes (Obsidian Vault)
 
