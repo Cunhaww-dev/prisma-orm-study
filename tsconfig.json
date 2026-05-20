@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "rootDir": "./src",
+    // "rootDir": "./src", comentado por conta do prisma.config.ts que está na raiz do projeto
     "outDir": "./dist",
     "module": "esnext",
     "moduleResolution": "bundler",
@@ -17,5 +17,5 @@
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true
   },
-  "include": ["src"]
+  "include": ["src", "prisma.config.ts"]
 }
