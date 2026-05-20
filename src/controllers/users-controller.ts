@@ -1,17 +1,25 @@
-import { Request, Response } from 'express'
+import { Request, Response } from 'express';
+import { prisma } from '@/prisma';
 
 export class UsersController {
-  index = async (_req: Request, res: Response) => {
-    return res.json([])
+  async index(_req: Request, res: Response) {
+    return res.json();
   }
 
-  show = async (req: Request, res: Response) => {
-    const { id } = req.params
-    return res.json({ id })
+  async show(req: Request, res: Response) {
+    return res.json();
   }
 
-  create = async (req: Request, res: Response) => {
-    const body = req.body
-    return res.status(201).json(body)
+  async create(req: Request, res: Response) {
+    const { name, email } = req.body;
+
+    await prisma.user.create({
+      data: {
+        name,
+        email,
+      },
+    });
+
+    return res.status(201).json();
   }
 }

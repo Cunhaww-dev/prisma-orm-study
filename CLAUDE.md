@@ -31,19 +31,35 @@ npx prisma generate                      # regenerate prisma client
 npx prisma migrate reset                 # wipe and reapply all migrations
 ```
 
-No test or lint scripts are configured.
+```bash
+npm run lint     # ESLint (TypeScript) — no test scripts configured
+```
 
 ## Architecture
 
-Single-file HTTP API (`src/server.ts`) using Node's native `http` module — no framework. The server listens on port 3333, routes `GET /` to "Hello World!", and 404s everything else.
+HTTP API (`src/server.ts`) using **Express 5**. Routes are organized in `src/routes/` with controllers in `src/controllers/`. Server listens on port 3333.
 
 Build output goes to `dist/` (TypeScript target: ES2024, module: nodenext). Path alias `@/*` maps to `./src/*`.
 
 The Dockerfile uses `node:24-alpine3.20`, copies the full source, installs deps, builds, and runs `npm start`. Port 3333 is exposed.
 
-PostgreSQL runs via Docker Compose (`bitnami/postgresql:latest`) on port 5432. Credentials and database name are loaded from `.env` (see `.env.example`).
+PostgreSQL runs via Docker Compose (`bitnami/postgresql:latest`) on port **5433** on the host (5432 inside the container). Credentials are loaded from `.env`.
 
 Prisma schema lives at `prisma/schema.prisma`. The `DATABASE_URL` in `.env` must point to the running Postgres container before running any Prisma commands.
+
+## Prisma 7 — Driver Adapter
+
+Prisma 7 requires a driver adapter. The project uses `@prisma/adapter-pg` with a `pg.Pool`:
+
+```ts
+import { Pool } from 'pg';
+import { PrismaPg } from '@prisma/adapter-pg';
+const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+const adapter = new PrismaPg(pool);
+export const prisma = new PrismaClient({ adapter });
+```
+
+The CLI (migrations, studio) reads connection config from `prisma.config.ts` — the `url` field is **not** in `schema.prisma`.
 
 ## Purpose
 
