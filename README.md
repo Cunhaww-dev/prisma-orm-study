@@ -28,29 +28,62 @@ Repositório de estudos de Docker e Prisma ORM usando uma API Node.js como proje
 
 ## Rodando o projeto
 
-**1. Configure o `.env`** a partir do exemplo:
+**1. Configure o arquivo `.env`:**
+
+Copie o arquivo de exemplo:
 ```bash
 cp .env.example .env
 ```
+
+Abra o `.env` criado e preencha com os valores que desejar. Abaixo está um exemplo funcional:
+```env
+POSTGRESQL_USERNAME=postgres
+POSTGRESQL_PASSWORD=postgres
+POSTGRESQL_POSTGRES_PASSWORD=postgres
+POSTGRESQL_DATABASE=api
+DATABASE_URL="postgresql://postgres:postgres@localhost:5433/api"
+```
+
+A `DATABASE_URL` é usada pelo Prisma para conectar ao banco. A porta `5433` é a porta do host mapeada para o PostgreSQL dentro do Docker.
 
 **2. Suba o banco de dados:**
 ```bash
 docker compose up postgres -d
 ```
 
+O Docker vai baixar a imagem do PostgreSQL na primeira vez e subir o container em background. Aguarde alguns segundos até o banco estar pronto.
+
 **3. Execute as migrations:**
 ```bash
 npx prisma migrate dev
 ```
 
-**4. (Opcional) Abra o Prisma Studio:**
+O Prisma lê o `schema.prisma`, cria as tabelas `users` e `questions` no banco e gera o client TypeScript em `src/generated/prisma/`. Rode esse comando sempre que modificar o schema.
+
+**4. (Opcional) Popule o banco com dados iniciais:**
+```bash
+npx prisma db seed
+```
+
+Insere alguns usuários de exemplo para você testar as rotas sem precisar criar dados manualmente.
+
+**5. (Opcional) Abra o Prisma Studio:**
 ```bash
 npx prisma studio
 ```
 
-**5. Rode a API:**
+Interface visual do banco, acessível em `http://localhost:5555`. Útil para inspecionar os dados sem precisar de um cliente SQL.
+
+**6. Rode a API:**
 ```bash
 npm run dev
+```
+
+A API sobe na porta `3333` com hot reload. Qualquer alteração nos arquivos TypeScript reinicia o servidor automaticamente.
+
+Confirme que está funcionando:
+```bash
+curl http://localhost:3333/users
 ```
 
 ---
@@ -82,7 +115,7 @@ docker exec -it postgres /bin/bash
 
 ## 1. O que é Docker
 
-Docker é uma plataforma que empacota, distribui e executa aplicações em ambientes isolados chamados **containers**. A ideia central é resolver o famoso problema "na minha máquina funciona" — com Docker, o que roda no seu PC roda igual no servidor de produção.
+Docker é uma plataforma que empacota, distribui e executa aplicações em ambientes isolados chamados **containers**. A ideia central é resolver o famoso problema "na minha máquina funciona". Com Docker, o que roda no seu PC roda igual no servidor de produção.
 
 ### Virtualização vs Containers
 
@@ -119,11 +152,18 @@ VM é como construir uma casa nova para cada hóspede. Container é como quartos
 
 ## 2. O Projeto Base
 
-API HTTP minimalista em Node.js/TypeScript usada como base prática nos estudos.
+API HTTP em Node.js/TypeScript usada como base prática nos estudos.
 
 ```
-GET /     → "Hello World!"
-qualquer outra rota → 404
+GET    /users                    lista todos os usuários
+GET    /users/:id                busca usuário por ID
+POST   /users                    cria um novo usuário
+
+GET    /questions                lista todas as perguntas
+GET    /questions?title=termo    busca perguntas por título (sem distinção de maiúsculas)
+POST   /questions                cria uma nova pergunta
+PUT    /questions/:id            atualiza uma pergunta
+DELETE /questions/:id            remove uma pergunta
 ```
 
 ### Configuração relevante
@@ -330,8 +370,8 @@ Existe uma diferença importante:
 
 | Operação | O que acontece com os dados |
 |---|---|
-| `docker stop` + `docker start` | **Preservados** — o mesmo container foi pausado e reiniciado |
-| `docker run` (novo container) | **Perdidos** — nova instância limpa da imagem |
+| `docker stop` + `docker start` | **Preservados** (o mesmo container foi pausado e reiniciado) |
+| `docker run` (novo container) | **Perdidos** (nova instância limpa da imagem) |
 
 A solução é usar **Volumes** para salvar dados fora do container.
 
@@ -500,11 +540,12 @@ services:
     image: 'bitnami/postgresql:latest'
     container_name: postgres
     ports:
-      - "5432:5432"
+      - "5433:5432"
     environment:
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres
-      - POSTGRES_DB=api
+      - POSTGRESQL_USERNAME=${POSTGRESQL_USERNAME}
+      - POSTGRESQL_PASSWORD=${POSTGRESQL_PASSWORD}
+      - POSTGRESQL_POSTGRES_PASSWORD=${POSTGRESQL_POSTGRES_PASSWORD}
+      - POSTGRESQL_DATABASE=${POSTGRESQL_DATABASE}
     volumes:
       - database_data:/bitnami/postgresql
 
@@ -513,7 +554,7 @@ volumes:
 ```
 
 **Pontos importantes:**
-- `version` foi removido — o Docker ignora essa linha atualmente e avisa que está obsoleta
+- `version` foi removido. O Docker ignora essa linha atualmente e avisa que está obsoleta
 - Indentação define hierarquia no YAML — um espaço errado quebra o arquivo. Use sempre espaços, nunca tab
 - Portas entre aspas (`"3333:3333"`) — boa prática para evitar que o YAML interprete como outro tipo de dado
 - Variáveis de ambiente no formato `CHAVE=VALOR` (não `CHAVE: VALOR`)
@@ -521,7 +562,7 @@ volumes:
 - Volume `database_data` declarado na seção `volumes` — o Docker gerencia ele
 
 **Por que a API não tem volume?**
-A API não guarda dados persistentes — só o banco precisa garantir que os dados sobrevivam ao ciclo de vida do container.
+A API não guarda dados persistentes. Apenas o banco precisa garantir que os dados sobrevivam ao ciclo de vida do container.
 
 ### Executando com Docker Compose
 
@@ -650,7 +691,7 @@ O `prisma init` cria:
 No `.env`, aponte para o Postgres rodando no Docker:
 
 ```env
-DATABASE_URL="postgresql://postgres:postgres@localhost:5432/api"
+DATABASE_URL="postgresql://postgres:postgres@localhost:5433/api"
 ```
 
 ### Comandos essenciais

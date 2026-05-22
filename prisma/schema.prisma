@@ -12,5 +12,28 @@ model User {
   name String
   email String @unique
 
+  // Aqui dizemos que o usuário faz muitas perguntas e a relação é feita através do campo userId na tabela Question
+  questions Question[]
+  
+  createdAt DateTime   @default(now()) @map("created_at")
+  updatedAt DateTime   @updatedAt @map("updated_at")
+
   @@map("users")
+}
+
+model Question {
+  id String @id @default(uuid())
+  title String
+  content String
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  userId String @map("user_id") // Foreign key to User model
+
+  // Em fields passamos a chave estrangeira e a referência para o modelo é a chave primária, além de definir a ação de exclusão em cascata
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("questions")
 }
