@@ -27,7 +27,8 @@ npx prisma migrate dev --name <name>     # create and apply a migration
 npx prisma migrate deploy                # apply pending migrations
 npx prisma db push                       # sync schema without migration
 npx prisma studio                        # open visual database browser
-npx prisma generate                      # regenerate prisma client
+npx prisma generate                      # regenerate prisma client → output: src/generated/prisma/
+npx prisma db seed                       # run prisma/seed.ts
 npx prisma migrate reset                 # wipe and reapply all migrations
 ```
 
@@ -45,19 +46,11 @@ The Dockerfile uses `node:24-alpine3.20`, copies the full source, installs deps,
 
 PostgreSQL runs via Docker Compose (`bitnami/postgresql:latest`) on port **5433** on the host (5432 inside the container). Credentials are loaded from `.env`.
 
-Prisma schema lives at `prisma/schema.prisma`. The `DATABASE_URL` in `.env` must point to the running Postgres container before running any Prisma commands.
+Prisma schema lives at `prisma/schema.prisma`. The `DATABASE_URL` in `.env` must point to the running Postgres container before running any Prisma commands. Use `localhost:5433` from the host; use `postgres:5432` from inside a container.
 
 ## Prisma 7 — Driver Adapter
 
-Prisma 7 requires a driver adapter. The project uses `@prisma/adapter-pg` with a `pg.Pool`:
-
-```ts
-import { Pool } from 'pg';
-import { PrismaPg } from '@prisma/adapter-pg';
-const pool = new Pool({ connectionString: process.env.DATABASE_URL });
-const adapter = new PrismaPg(pool);
-export const prisma = new PrismaClient({ adapter });
-```
+Prisma 7 requires a driver adapter. The project uses `@prisma/adapter-pg` with a `pg.Pool`. See `src/prisma.ts` for the implementation. Import the shared client from there; do not instantiate a new `PrismaClient` in controllers.
 
 The CLI (migrations, studio) reads connection config from `prisma.config.ts` — the `url` field is **not** in `schema.prisma`.
 
