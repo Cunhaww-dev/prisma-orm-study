@@ -1,4 +1,4 @@
-# Docker + Prisma ORM — Guia de Estudos
+# Docker + Prisma ORM
 
 Repositório de estudos de Docker e Prisma ORM usando uma API Node.js como projeto base. Cobre desde os fundamentos do Docker até o uso do Prisma com PostgreSQL rodando em container.
 
