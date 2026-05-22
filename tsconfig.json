@@ -17,5 +17,5 @@
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true
   },
-  "include": ["src", "prisma.config.ts"]
+  "include": ["src", "prisma.config.ts", "prisma"]
 }
